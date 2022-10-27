@@ -1,0 +1,111 @@
+;; Pseudocodigo usado para a solucao do trabalho:
+
+
+;; Seja v = 0
+;; Seja i = 1
+
+;; Enquanto vetor_entrada[v] != 0
+;;	Se vetor_entrada[v] < 0
+;;		vetor_saida[i] = vetor_entrada[v]
+;;		vetor_entrada[v] = vetor_entrada[v+1]
+;;		acessa o endereco de memoria de vetor_entrada[v]
+;;	Senao
+;;		vetor_saida[i] = vetor_entrada[v]
+;;		vetor_entrada[v] = vetor_entrada[v+2]
+;;		acessa o endereco de memoria de vetor_entrada[v]
+;;
+;; Fim
+
+;; a patir da posicao de memoria H80
+
+ORG H80
+
+vetor_entrada:	DAB	[45]	;; declaracao de vetor de entrada
+
+;; a partir da posicao de memoria HF0
+
+ORG HF0
+
+vetor_saida:	DAB	[16]	;; declaracao de vetor de saida
+
+;; a partir da posicao de memoria H0
+
+ORG	H0
+
+Redefinicao:
+
+	LDR	X,#14		;; carrega 14 em X
+	STR	X,catorze	;; salva o conteudo de X na variavel catorze
+	LDR	X,#H1		;; carrega 1 em X
+	STR	X,pos		;; salva o conteudo de X na variavel pos
+
+Zera:
+
+	LDR	X,pos		;; carrega a variavel pos
+	LDR	A,#0		;; carrega zero em A
+	STR	A,vetor_saida,X	;; salva o que esta em A em uma posicao X do vetor de saida
+	ADD	X,#1		;; adiciona 1 ao conteudo de X
+	STR	X,pos		;; salva o conteudo de X na variavel pos
+	LDR	B,catorze	;; carrega o conteudo de catorze em B
+	SUB	B,#1		;; subtrai 1 do conteudo de B
+	STR	B,catorze	;; salva o conteudo de B na variavel catorze
+	JN	Inicio		;; se um numero negativo for detectado, vai para Inicio
+	JMP	Zera		;; se a condicao anterior nao for atendida, volta para Zera
+
+Inicio:
+
+	LDR	X,#H80		;; carrega a posicao de memoria H80 em X
+	STR	X,ponteiro	;; salva o conteudo de X na variavel ponteiro
+	JN	Negativo	;; se for negativo, vai para o caso Negativo
+	LDR	X,#1		;; o numero 1 e carregado em X
+
+Positivo:
+
+	LDR	X,ponteiro
+	ADD	X,#2		;; o numero 2 e somado ao conteudo de ponteiro
+	LDR	X,#1
+	JMP	Loop		;; jump incondicional que vai para o loop do programa
+
+Negativo:
+
+	LDR	X,ponteiro
+	ADD	X,#1		;; o numero 1 e somado ao conteudo de ponteiro
+	LDR	X,#1
+
+Loop:
+
+	LDR	A,ponteiro,I	;; carregamento indireto da variavel ponteiro
+	JZ	Fim		;; se um zero for detectado, vai para o fim do programa
+	STR	A,vetor_saida,X	;; o conteudo de A e armazenado em uma posicao X do vetor de saida
+	JN	TrataNegativo	;; se um numero negativo for detectado, vai para TrataNegativo
+	LDR	B,ponteiro	;; a variavel ponteiro e carregada em B
+	ADD	B,#2		;; B e incrementado em duas unidades, ja que o programa deve ir para o lado direito
+	STR	B,ponteiro	;; a variavel ponteiro e carregada em B
+	LDR	A,ponteiro,I	;; carregamento indireto da variavel ponteiro
+	JZ	Fim		;; se um zero for detectado, vai para o fim do programa
+	STR	A,ponteiro	;; o conteudo de A e salvo na variavel ponteiro
+	ADD	X,#1		;; X e incrementado
+	JMP	Loop		;; jump incondicional que vai para o loop do programa
+
+TrataNegativo:
+	
+	LDR	B,ponteiro	;; carregamento de B
+	ADD	B,#1		;; B e incrementado em um unidade, ja que o programa deve ir para o lado esquerdo
+	STR	B,ponteiro	;; o conteudo de B e salvo na variavel ponteiro
+	LDR	A,ponteiro,I	;; carregamento indireto da variavel ponteiro
+	JZ	Fim		;; se um zero for detectado, vai para o fim do programa
+	STR	A,ponteiro	;; o conteudo de A e salvo na variavel ponteiro
+	ADD	X,#1		;; X e incrementado
+	JMP	Loop		;; jump incondicional que vai para o loop do programa
+
+Fim:
+	STR	X,HF0		;; o conteudo de X e armazenado na posicao de memoria HF0
+	HLT			;; fim do programa
+
+;; a partir da posicao de memoria H5D
+
+ORG H5D
+
+pos:		DB		;; variavel que guarda o numero 1 no comeco do programa
+catorze:	DB		;; variavel que guarda o numero 14 no comeco do programa
+ponteiro:	DB	H80	;; variavel ponteiro
